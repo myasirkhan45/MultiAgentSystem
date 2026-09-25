@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ResearchOS — Multi-Agent Research System</title>
+<meta name="description" content="A multi-agent AI research dashboard: search, read, write and critique — automated." />
+
+<!-- Google Font: Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Lucide icons (lightweight, tree-shakable SVG icon set) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide-static/0.462.0/umd/lucide.min.js" defer></script>
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Skip link for keyboard users -->
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<!-- ============================= NAVBAR ============================= -->
+<header class="navbar" role="banner">
+  <div class="navbar__inner">
+    <div class="navbar__brand">
+      <span class="brand-mark" aria-hidden="true">
+        <i data-lucide="orbit"></i>
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">ResearchOS</span>
+        <span class="brand-sub">Multi-Agent Research System</span>
+      </div>
+    </div>
+
+    <nav class="navbar__nav" aria-label="Primary">
+      <button class="nav-link is-active" data-view="research" type="button">Research</button>
+      <button class="nav-link" data-view="history" type="button">History</button>
+      <button class="nav-link" data-view="about" type="button">About</button>
+    </nav>
+
+    <div class="navbar__status">
+      <span class="status-dot" id="systemStatusDot" aria-hidden="true"></span>
+      <span id="systemStatusText">System Online</span>
+    </div>
+
+    <button class="navbar__menu-btn" id="mobileMenuBtn" type="button" aria-label="Open navigation menu" aria-expanded="false">
+      <i data-lucide="menu"></i>
+    </button>
+  </div>
+
+  <!-- Mobile nav drawer -->
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile" hidden>
+    <button class="nav-link is-active" data-view="research" type="button">Research</button>
+    <button class="nav-link" data-view="history" type="button">History</button>
+    <button class="nav-link" data-view="about" type="button">About</button>
+  </nav>
+</header>
+
+<main id="main-content">
+
+  <!-- ========================= RESEARCH VIEW ========================= -->
+  <section class="view" id="view-research" data-view-panel>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1 class="hero__title">Research anything.<br>Get an evidence&#8209;backed report.</h1>
+      <p class="hero__subtitle">Let a team of AI agents search, read, analyze and critique information for you.</p>
+    </section>
+
+    <!-- Research input card -->
+    <section class="card input-card" aria-label="Start a research request">
+      <label class="visually-hidden" for="topicInput">What would you like to research?</label>
+      <textarea
+        id="topicInput"
+        class="input-card__textarea"
+        placeholder="What would you like to research?&#10;e.g. What is the impact of war on petrol prices in Pakistan?"
+        maxlength="500"
+        rows="3"
+        aria-describedby="charCount"
+      ></textarea>
+
+      <div class="input-card__toolbar">
+        <span class="char-count" id="charCount">0 / 500</span>
+
+        <div class="input-card__actions">
+          <button class="btn btn--ghost" id="clearBtn" type="button">Clear</button>
+          <button class="btn btn--primary" id="startBtn" type="button">
+            <span class="btn__label">
+              <i data-lucide="sparkles"></i>
+              Start Research
+            </span>
+            <span class="btn__spinner" hidden aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agent workflow visualization -->
+    <section class="workflow" aria-label="Agent workflow">
+      <div class="workflow__track" id="workflowTrack">
+
+        <div class="agent-node" data-agent="search" data-state="idle">
+          <div class="agent-node__icon"><i data-lucide="search"></i></div>
+          <div class="agent-node__body">
+            <span class="agent-node__name">Search</span>
+            <span class="agent-node__role">Agent</span>
+            <span class="agent-node__state">Idle</span>
+          </div>
+        </div>
+
+        <div class="workflow__connector" aria-hidden="true"><span class="workflow__connector-fill"></span></div>
+
+        <div class="agent-node" data-agent="reader" data-state="idle">
+          <div class="agent-node__icon"><i data-lucide="book-open"></i></div>
+          <div class="agent-node__body">
+            <span class="agent-node__name">Reader</span>
+            <span class="agent-node__role">Agent</span>
+            <span class="agent-node__state">Idle</span>
+          </div>
+        </div>
+
+        <div class="workflow__connector" aria-hidden="true"><span class="workflow__connector-fill"></span></div>
+
+        <div class="agent-node" data-agent="writer" data-state="idle">
+          <div class="agent-node__icon"><i data-lucide="file-text"></i></div>
+          <div class="agent-node__body">
+            <span class="agent-node__name">Writer</span>
+            <span class="agent-node__role">Agent</span>
+            <span class="agent-node__state">Idle</span>
+          </div>
+        </div>
+
+        <div class="workflow__connector" aria-hidden="true"><span class="workflow__connector-fill"></span></div>
+
+        <div class="agent-node" data-agent="critic" data-state="idle">
+          <div class="agent-node__icon"><i data-lucide="shield-check"></i></div>
+          <div class="agent-node__body">
+            <span class="agent-node__name">Critic</span>
+            <span class="agent-node__role">Agent</span>
+            <span class="agent-node__state">Idle</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Progress panel (shown while researching) -->
+    <section class="card progress-card" id="progressCard" hidden aria-live="polite">
+      <div class="progress-card__header">
+        <h2>Research Progress</h2>
+        <span class="progress-card__percent" id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+        <div class="progress-bar__fill" id="progressBarFill"></div>
+      </div>
+
+      <ul class="progress-steps" id="progressSteps">
+        <li class="progress-step" data-step="search">
+          <span class="progress-step__icon"><i data-lucide="circle"></i></span>
+          <div class="progress-step__text">
+            <span class="progress-step__title">Search Agent</span>
+            <span class="progress-step__detail">Waiting to start&hellip;</span>
+          </div>
+        </li>
+        <li class="progress-step" data-step="reader">
+          <span class="progress-step__icon"><i data-lucide="circle"></i></span>
+          <div class="progress-step__text">
+            <span class="progress-step__title">Reader Agent</span>
+            <span class="progress-step__detail">Waiting&hellip;</span>
+          </div>
+        </li>
+        <li class="progress-step" data-step="writer">
+          <span class="progress-step__icon"><i data-lucide="circle"></i></span>
+          <div class="progress-step__text">
+            <span class="progress-step__title">Writer Agent</span>
+            <span class="progress-step__detail">Waiting&hellip;</span>
+          </div>
+        </li>
+        <li class="progress-step" data-step="critic">
+          <span class="progress-step__icon"><i data-lucide="circle"></i></span>
+          <div class="progress-step__text">
+            <span class="progress-step__title">Critic Agent</span>
+            <span class="progress-step__detail">Waiting&hellip;</span>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Error card -->
+    <section class="card error-card" id="errorCard" hidden role="alert">
+      <div class="error-card__header">
+        <i data-lucide="alert-triangle"></i>
+        <h2>Research failed</h2>
+      </div>
+      <p id="errorMessage">Unable to complete the research request.</p>
+      <div class="error-card__actions">
+        <button class="btn btn--primary" id="retryBtn" type="button">Retry</button>
+        <button class="btn btn--ghost" id="dismissErrorBtn" type="button">Dismiss</button>
+      </div>
+      <details class="error-card__details">
+        <summary>Technical details</summary>
+        <pre id="errorTechnical"></pre>
+      </details>
+    </section>
+
+    <!-- Empty state -->
+    <section class="empty-state" id="emptyState">
+      <div class="empty-state__icon"><i data-lucide="telescope"></i></div>
+      <h2>Your research workspace is ready.</h2>
+      <p>Enter a topic above and let the agent team investigate it.</p>
+
+      <div class="example-chips" id="exampleChips">
+        <button class="example-chip" type="button">Impact of AI on software engineering jobs</button>
+        <button class="example-chip" type="button">Effects of global oil prices on Pakistan</button>
+        <button class="example-chip" type="button">Latest developments in renewable energy</button>
+        <button class="example-chip" type="button">Future of generative AI</button>
+      </div>
+    </section>
+
+    <!-- ========================= RESULTS DASHBOARD ========================= -->
+    <section class="results" id="resultsSection" hidden aria-label="Research results">
+
+      <div class="tabs" role="tablist" aria-label="Result sections">
+        <button class="tab is-active" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true" data-tab="overview" type="button">Overview</button>
+        <button class="tab" role="tab" id="tab-sources" aria-controls="panel-sources" aria-selected="false" data-tab="sources" type="button">Sources</button>
+        <button class="tab" role="tab" id="tab-report" aria-controls="panel-report" aria-selected="false" data-tab="report" type="button">Report</button>
+        <button class="tab" role="tab" id="tab-critic" aria-controls="panel-critic" aria-selected="false" data-tab="critic" type="button">Critic</button>
+      </div>
+
+      <!-- Overview panel -->
+      <div class="tab-panel is-active" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-panel="overview">
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span class="summary-card__label"><i data-lucide="target"></i> Research Topic</span>
+            <span class="summary-card__value" id="summaryTopic">Not available</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label"><i data-lucide="link"></i> Sources Found</span>
+            <span class="summary-card__value" id="summarySources">Not available</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label"><i data-lucide="activity"></i> Research Status</span>
+            <span class="summary-card__value" id="summaryStatus">Not available</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-card__label"><i data-lucide="gauge"></i> Critic Score</span>
+            <span class="summary-card__value" id="summaryScore">Not available</span>
+          </div>
+        </div>
+
+        <!-- Raw agent details (accordion) -->
+        <div class="accordion" id="agentDetailsAccordion">
+          <h3 class="accordion__title">Agent Details</h3>
+
+          <div class="accordion-item">
+            <button class="accordion-item__trigger" type="button" aria-expanded="false" data-accordion="search">
+              <i data-lucide="search"></i> Search Agent
+              <i data-lucide="chevron-down" class="accordion-item__chevron"></i>
+            </button>
+            <div class="accordion-item__panel" hidden>
+              <pre id="detailSearch">Not available</pre>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-item__trigger" type="button" aria-expanded="false" data-accordion="reader">
+              <i data-lucide="book-open"></i> Reader Agent
+              <i data-lucide="chevron-down" class="accordion-item__chevron"></i>
+            </button>
+            <div class="accordion-item__panel" hidden>
+              <pre id="detailReader">Not available</pre>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-item__trigger" type="button" aria-expanded="false" data-accordion="writer">
+              <i data-lucide="file-text"></i> Writer Agent
+              <i data-lucide="chevron-down" class="accordion-item__chevron"></i>
+            </button>
+            <div class="accordion-item__panel" hidden>
+              <pre id="detailWriter">Not available</pre>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-item__trigger" type="button" aria-expanded="false" data-accordion="critic">
+              <i data-lucide="shield-check"></i> Critic Agent
+              <i data-lucide="chevron-down" class="accordion-item__chevron"></i>
+            </button>
+            <div class="accordion-item__panel" hidden>
+              <pre id="detailCritic">Not available</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sources panel -->
+      <div class="tab-panel" id="panel-sources" role="tabpanel" aria-labelledby="tab-sources" data-panel="sources" hidden>
+        <div class="sources-grid" id="sourcesGrid">
+          <!-- Source cards injected here -->
+        </div>
+      </div>
+
+      <!-- Report panel -->
+      <div class="tab-panel" id="panel-report" role="tabpanel" aria-labelledby="tab-report" data-panel="report" hidden>
+        <div class="report-toolbar">
+          <button class="btn btn--ghost btn--sm" id="copyReportBtn" type="button">
+            <i data-lucide="copy"></i> Copy Report
+          </button>
+          <button class="btn btn--ghost btn--sm" id="downloadReportBtn" type="button">
+            <i data-lucide="download"></i> Download
+          </button>
+          <button class="btn btn--ghost btn--sm" id="printReportBtn" type="button">
+            <i data-lucide="printer"></i> Print
+          </button>
+        </div>
+        <article class="report-content" id="reportContent">
+          <p class="muted">Not available</p>
+        </article>
+      </div>
+
+      <!-- Critic panel -->
+      <div class="tab-panel" id="panel-critic" role="tabpanel" aria-labelledby="tab-critic" data-panel="critic" hidden>
+        <div class="critic-score">
+          <div class="critic-score__ring" id="criticScoreRing">
+            <span id="criticScoreValue">—</span>
+          </div>
+          <span class="critic-score__label">Research Quality</span>
+        </div>
+
+        <div class="critic-columns">
+          <div class="critic-column">
+            <h3><i data-lucide="check-circle-2"></i> Strengths</h3>
+            <ul id="criticStrengths"><li class="muted">Not available</li></ul>
+          </div>
+          <div class="critic-column">
+            <h3><i data-lucide="wrench"></i> Areas to Improve</h3>
+            <ul id="criticImprovements"><li class="muted">Not available</li></ul>
+          </div>
+        </div>
+
+        <blockquote class="critic-verdict" id="criticVerdict">Not available</blockquote>
+      </div>
+    </section>
+  </section>
+
+  <!-- ========================= HISTORY VIEW ========================= -->
+  <section class="view" id="view-history" data-view-panel hidden>
+    <div class="view-header">
+      <h1>Research History</h1>
+      <button class="btn btn--ghost btn--sm" id="clearHistoryBtn" type="button">
+        <i data-lucide="trash-2"></i> Clear History
+      </button>
+    </div>
+    <ul class="history-list" id="historyList">
+      <!-- History items injected here -->
+    </ul>
+    <p class="empty-note" id="historyEmptyNote" hidden>No research history yet. Completed research will appear here.</p>
+  </section>
+
+  <!-- ========================= ABOUT VIEW ========================= -->
+  <section class="view" id="view-about" data-view-panel hidden>
+    <div class="about-content">
+      <h1>About ResearchOS</h1>
+      <p>ResearchOS coordinates a small team of specialized AI agents to turn a single research question into an evidence-backed report.</p>
+      <ul class="about-list">
+        <li><strong>Search Agent</strong> — finds relevant sources across the web.</li>
+        <li><strong>Reader Agent</strong> — scrapes and reads the selected sources.</li>
+        <li><strong>Writer Agent</strong> — synthesizes findings into a structured report.</li>
+        <li><strong>Critic Agent</strong> — scores the report and flags gaps.</li>
+      </ul>
+      <p class="muted">Connect your own backend by editing <code>CONFIG.API_URL</code> in <code>script.js</code>.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- Toast notification container -->
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<script src="script.js" defer></script>
+</body>
+</html>
