@@ -22,7 +22,7 @@
  * 1. Configuration — change the backend URL here, and only here.
  * ---------------------------------------------------------------------- */
 const CONFIG = {
-  API_URL: "http://127.0.0.1:8000/research",
+  API_URL: "https://multi-agent-system-hazel.vercel.app/research",
   REQUEST_TIMEOUT_MS: 300000, // 5 minutes — research can take a while
   HISTORY_KEY: "researchos_history",
   HISTORY_LIMIT: 25,
