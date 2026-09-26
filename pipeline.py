@@ -210,7 +210,7 @@ def run_search_agent(topic: str) -> dict:
             "topic": topic,
             "research": research_combined
         })
-        state["report"] = writer_response.content
+        state["report"] = (writer_response.content or "").strip()
 
         # Detect truncation: if Groq cut the response off because it hit
         # max_tokens, response_metadata will say finish_reason == "length".
@@ -218,6 +218,25 @@ def run_search_agent(topic: str) -> dict:
         if finish_reason == "length":
             print("[WARNING] Report was truncated — it hit the max_tokens limit. "
                   "Consider raising writer_llm's max_tokens further.")
+
+        # Reasoning models (gpt-oss) can burn the whole token budget on
+        # internal reasoning and return an empty final answer with no
+        # error. Catch that case explicitly instead of silently showing
+        # a blank report on the frontend.
+        if not state["report"]:
+            print("[WARNING] Writer returned empty content — reasoning likely "
+                  "consumed the full max_tokens budget. Retrying once...")
+            retry_response = writer_chain.invoke({
+                "topic": topic,
+                "research": research_combined
+            })
+            state["report"] = (retry_response.content or "").strip()
+
+        if not state["report"]:
+            state["report"] = (
+                "Report generation returned empty content twice in a row. "
+                "Try increasing writer_llm's max_tokens or lowering reasoning_effort further."
+            )
 
         print("\n[OK] Writer completed.")
 
