@@ -23,7 +23,7 @@
  * ---------------------------------------------------------------------- */
 const CONFIG = {
   API_URL: "http://127.0.0.1:8000/research",
-  REQUEST_TIMEOUT_MS: 120000, // 2 minutes — research can take a while
+  REQUEST_TIMEOUT_MS: 300000, // 5 minutes — research can take a while
   HISTORY_KEY: "researchos_history",
   HISTORY_LIMIT: 25,
 };
@@ -521,7 +521,7 @@ function stringifyDetail(value) {
  *  { title, url, snippet, domain } objects. Backend response shapes vary,
  *  so this stays defensive rather than assuming one exact structure. */
 function extractSources(result) {
-  const raw = result.search_results ?? result.sources;
+  const raw = result.sources ?? result.search_results;
   if (!raw) return [];
 
   let list = raw;
